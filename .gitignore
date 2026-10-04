@@ -1,0 +1,20 @@
+# Dépendances (réinstallées avec npm ci / npm install)
+node_modules/
+
+# Secrets et configuration locale : JAMAIS dans Git
+.env
+.env.*
+!.env.example
+
+# Fichiers générés par les démonstrations
+*.log
+*.log.gz
+
+# Couverture de tests, builds
+coverage/
+dist/
+
+# Système et éditeurs
+.DS_Store
+Thumbs.db
+.idea/

@@ -23,14 +23,91 @@ en cas de retard.
 
 ---
 
-## 1. Prérequis (une seule fois)
+## 1. Installer son poste (une seule fois)
 
-1. **Node.js 24 LTS** ou plus récent : <https://nodejs.org> (vérifier : `node --version`)
-2. **Git** : <https://git-scm.com> (vérifier : `git --version`)
-3. **VS Code** (recommandé) : <https://code.visualstudio.com>
-4. Un compte **GitHub** à votre nom : il deviendra votre vitrine de freelance.
+Deux chemins mènent au **même résultat** : une commande `node --version` qui répond
+`v24.x`. Choisissez-en **un seul**.
 
-Configurez votre identité Git (elle apparaît dans chaque commit) :
+| | **Chemin A : installation officielle** | **Chemin B : Docker** |
+|---|---|---|
+| Principe | Node.js s'installe sur votre ordinateur | Node.js vit dans une « machine » jetable (un conteneur) |
+| Vous installez | Node.js, Git, VS Code | Docker, Git, VS Code |
+| Avantage | Le plus simple, le plus rapide à l'usage | Rien de Node sur votre ordinateur ; même environnement pour tous ; on peut tout détruire et recommencer |
+| À choisir si | Vous avez les droits d'installation | Vous ne voulez (ou ne pouvez) rien installer de Node, ou votre ordinateur est géré par un établissement |
+
+Dans les deux cas, installez aussi **Git** et créez un compte **GitHub** à votre nom (il
+deviendra votre vitrine de freelance). **VS Code** est recommandé.
+
+### Chemin A : installation officielle
+
+1. **Node.js 24 LTS** (ou plus récent), depuis le site officiel <https://nodejs.org>
+   (bouton « LTS », puis l'installateur : `.msi` sous Windows, `.pkg` sous macOS).
+   Sous Linux, ou pour pouvoir changer de version facilement, utilisez un gestionnaire de
+   versions : [fnm](https://github.com/Schniz/fnm) ou [nvm](https://github.com/nvm-sh/nvm).
+2. **Git** : <https://git-scm.com>
+3. **VS Code** : <https://code.visualstudio.com>
+
+Fermez puis rouvrez votre terminal, et vérifiez :
+
+```bash
+node --version    # v24.x ou plus
+npm --version
+git --version
+```
+
+### Chemin B : Docker (rien à installer de Node)
+
+1. **Docker** : [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows,
+   macOS) ou Docker Engine (Linux). Sous Windows, acceptez l'installation de WSL 2.
+   Lancez Docker Desktop et attendez qu'il indique « Engine running ».
+2. **Git** et **VS Code** (voir chemin A).
+3. Récupérez le dépôt (section 2 ci-dessous), puis, **depuis la racine du dépôt** :
+
+```bash
+docker compose up -d --build   # construit puis démarre « la machine » (1re fois : 1 à 3 min)
+docker compose exec node bash  # ouvre un terminal DANS la machine
+```
+
+Vous êtes maintenant dans la machine : le prompt change (`root@...:/work#`), et toutes les
+commandes du cours s'y exécutent comme sur un poste normal.
+
+```bash
+node --version   # v24.x
+cd s01-javascript
+node --test
+exit             # quitte le terminal ; la machine continue de tourner
+```
+
+| Je veux… | Commande (depuis la racine du dépôt) |
+|---|---|
+| Rouvrir un terminal dans la machine | `docker compose exec node bash` |
+| Exécuter une seule commande | `docker compose exec node node --test` |
+| Voir si la machine tourne | `docker compose ps` |
+| L'éteindre (vos fichiers restent) | `docker compose down` |
+| La reconstruire de zéro | `docker compose down` puis `docker compose up -d --build` |
+
+**Comment ça marche.** Le dossier du dépôt est **partagé** entre votre ordinateur et la
+machine (dossier `/work`) : vous éditez vos fichiers dans VS Code, comme d'habitude, et vous
+exécutez dans la machine. Le port **3000** est relié à votre ordinateur : un serveur lancé
+dans la machine répond sur <http://localhost:3000> dans votre navigateur.
+
+**Variante tout-en-un avec VS Code.** Installez l'extension *Dev Containers*, ouvrez le
+dossier du dépôt, puis `F1` → **Dev Containers: Reopen in Container**. VS Code démarre la
+machine et s'y connecte : l'éditeur **et** le terminal sont dans la machine.
+
+**À savoir avec Docker.**
+
+- Git peut rester sur votre ordinateur (clone, commit, push) : c'est le plus simple.
+- Le « mode veille » de Node (`node --test --watch`) ne voit pas toujours les fichiers
+  modifiés depuis votre éditeur sous Windows et macOS. Dans ce cas, relancez simplement
+  `node --test` après chaque sauvegarde.
+- Un serveur lancé dans la machine doit écouter toutes les interfaces : `server.listen(3000)`
+  fonctionne ; `server.listen(3000, 'localhost')` n'est **pas** joignable depuis votre navigateur.
+- `npm install` est plus lent que sur une installation officielle (partage de fichiers).
+
+### Votre identité Git (dans les deux cas)
+
+Elle apparaît dans chaque commit :
 
 ```bash
 git config --global user.name "Prénom Nom"
@@ -162,8 +239,10 @@ Chaque exercice est accompagné de tests automatiques (`*.test.mjs`) :
 ```bash
 cd s01-javascript
 node --test                 # tous les tests de la séance
-node --test --watch         # relance les tests à chaque sauvegarde
+node --test --watch         # relance les tests à chaque sauvegarde (voir la remarque Docker, section 1)
 ```
+
+Avec Docker, ces commandes se tapent **dans la machine** (`docker compose exec node bash`).
 
 Au début, les tests **échouent** : c'est normal, c'est à vous de les faire passer.
 

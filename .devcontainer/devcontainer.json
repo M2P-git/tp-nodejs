@@ -1,0 +1,16 @@
+{
+  "name": "TP Node.js (L3)",
+  "dockerComposeFile": ["../compose.yaml"],
+  "service": "node",
+  "workspaceFolder": "/work",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": ["editorconfig.editorconfig", "dbaeumer.vscode-eslint", "humao.rest-client"],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [3000]
+}

@@ -25,10 +25,15 @@ s01-javascript/
 
 ## Partie 0 : récupérer le dépôt (15 min)
 
-Suivez les sections 1 et 2 du [README principal](../README.md) : installation de
-Node 24 et de Git, configuration de votre identité, `git clone`.
+Suivez les sections 1 et 2 du [README principal](../README.md). Vous avez le choix :
 
-Vérification :
+- **Chemin A, officiel** : Node.js 24 LTS installé sur votre ordinateur ;
+- **Chemin B, Docker** : Node.js vit dans une machine jetable, rien à installer
+  (`docker compose up -d --build`, puis `docker compose exec node bash`).
+
+Dans les deux cas, configurez votre identité Git et faites `git clone`.
+
+Vérification (dans votre terminal, ou dans la machine Docker) :
 
 ```bash
 node --version   # v24.x ou plus
@@ -64,6 +69,9 @@ cd s01-javascript
 node --test              # lance tous les tests de la séance
 node --test --watch      # relance à chaque sauvegarde (Ctrl+C pour quitter)
 ```
+
+Au départ : **25 tests, 2 qui passent**. Votre objectif : 25 sur 25.
+Avec Docker, `--watch` ne voit pas toujours vos sauvegardes : relancez `node --test` à la main.
 
 | Exercice | Fichier à modifier | Notion |
 |---|---|---|

@@ -40,6 +40,9 @@ node --version   # v24.x ou plus
 git --version
 ```
 
+> **JavaScript un peu rouillé ?** Faites d'abord les huit exercices de révision de la syntaxe
+> dans `../s01-revision-syntaxe/` (43 tests avec corrigés), puis revenez ici.
+
 ## Partie 1 : prédire avant d'exécuter (60 min)
 
 Pour **chaque** démonstration :

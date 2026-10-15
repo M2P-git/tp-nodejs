@@ -1,18 +1,31 @@
-// Exercice 2 (closures) : un limiteur de requêtes (protection anti-abus)
+// Exercice 2 (closures) : un limiteur de requêtes (CORRECTION)
 //
-// creerLimiteur(max, fenetreMs) retourne une fonction autoriser(cle) qui renvoie :
-//   - true  tant que « cle » (ex. une adresse IP) a fait moins de « max » appels
-//           dans la fenêtre de temps courante ;
-//   - false au-delà, jusqu'à ce que la fenêtre (fenetreMs) soit écoulée.
-// Chaque clé a son propre compteur. Deux limiteurs ne partagent rien.
+// La Map « compteurs » est créée à chaque appel de creerLimiteur : chaque limiteur a donc
+// SON état, invisible de l'extérieur. La fonction retournée « se souvient » de cette Map.
+// C'est le principe de tous les middlewares configurables (express-rate-limit, cors, etc.).
 //
-// Contraintes :
-//   - aucune variable globale : l'état doit vivre DANS la closure ;
-//   - pour pouvoir tester sans attendre, l'horloge est injectée (paramètre « maintenant »).
+// Algorithme : « fenêtre fixe ». Limite connue : un client peut faire 2 × max appels
+// à cheval sur deux fenêtres. Les vraies bibliothèques utilisent souvent une fenêtre glissante
+// et un stockage partagé (Redis) quand il y a plusieurs instances du serveur (à discuter en S7).
 //
-// Vérification (depuis le dossier de la séance) :  node --test
+// Autre limite : les clés ne sont jamais supprimées (fuite mémoire si des millions d'IP passent).
+// Amélioration possible : purger périodiquement les entrées expirées.
 
 export function creerLimiteur(max, fenetreMs, maintenant = () => Date.now()) {
-  // TODO
-  throw new Error('À implémenter');
+  const compteurs = new Map(); // cle -> { debut, nombre }
+
+  return function autoriser(cle) {
+    const t = maintenant();
+    const compteur = compteurs.get(cle);
+
+    if (!compteur || t - compteur.debut >= fenetreMs) {
+      compteurs.set(cle, { debut: t, nombre: 1 });
+      return true;
+    }
+    if (compteur.nombre < max) {
+      compteur.nombre++;
+      return true;
+    }
+    return false;
+  };
 }

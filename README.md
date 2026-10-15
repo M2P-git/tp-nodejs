@@ -7,6 +7,7 @@ précédente**.
 
 | Dossier | Séance | Contenu |
 |---|---|---|
+| `s01-revision-syntaxe/` | 1 | Révision de la syntaxe JavaScript (8 exercices avec tests) |
 | `s01-javascript/` | 1 | L'essentiel de JavaScript pour comprendre Node.js |
 | `s02-modele-execution/` | 2 | Boucle d'événements, asynchronisme, pool de threads, streams |
 | `s03-plateforme/` | 3 | Modules, paquets, outillage, premier serveur HTTP |

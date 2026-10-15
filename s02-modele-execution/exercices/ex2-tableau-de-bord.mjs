@@ -1,24 +1,34 @@
-// Exercice 2 : paralléliser les attentes (sans changer le résultat)
+// Exercice 2 : paralléliser les attentes (CORRECTION)
 //
-// chargerTableauDeBord(api) construit l'écran d'accueil d'un salon. L'objet api fournit :
-//   api.profil()                   → Promise<profil>          (≈ 100 ms)
-//   api.reservations()             → Promise<reservations>    (≈ 100 ms)
-//   api.statistiques()             → Promise<statistiques>    (≈ 100 ms)
-//   api.recommandations(profil)    → Promise<recommandations> (≈ 100 ms), a BESOIN du profil
+// Seule la dépendance profil → recommandations est réelle. On lance donc TOUT de suite
+// les trois appels indépendants, et les recommandations dès que le profil est connu :
 //
-// La version actuelle attend chaque appel l'un après l'autre : ≈ 400 ms.
-// Objectifs :
-//   1. Même résultat, en moins de 250 ms (quelles attentes sont réellement dépendantes ?).
-//   2. Les statistiques sont FACULTATIVES : si api.statistiques() échoue, renvoyer
-//      statistiques: null au lieu de faire échouer tout le tableau de bord.
-//      Toute autre erreur doit, elle, être propagée.
+//   0 ms ──── profil ────► 100 ms ──── recommandations ────► 200 ms
+//   0 ms ──── reservations ────► 100 ms
+//   0 ms ──── statistiques ────► 100 ms
 //
-// Vérification (depuis le dossier de la séance) :  node --test
+// Durée totale ≈ 200 ms au lieu de 400 ms.
+//
+// Rappel : une promesse démarre son travail dès sa CRÉATION. « await » ne lance rien,
+// il attend. Pour paralléliser, on crée d'abord les promesses, on les attend ensuite.
+//
+// .catch(() => null) transforme l'échec des statistiques en valeur « null » : la promesse
+// correspondante ne rejette jamais, donc Promise.all ne peut échouer qu'à cause des autres.
 
 export async function chargerTableauDeBord(api) {
-  const profil = await api.profil();
-  const reservations = await api.reservations();
-  const statistiques = await api.statistiques();
-  const recommandations = await api.recommandations(profil);
+  const promesseProfil = api.profil();
+  const promesseReservations = api.reservations();
+  const promesseStatistiques = api.statistiques().catch(() => null);
+  const promesseRecommandations = promesseProfil.then((profil) => api.recommandations(profil));
+
+  const [profil, reservations, statistiques, recommandations] = await Promise.all([
+    promesseProfil,
+    promesseReservations,
+    promesseStatistiques,
+    promesseRecommandations,
+  ]);
   return { profil, reservations, statistiques, recommandations };
 }
+
+// En production, on journaliserait l'erreur des statistiques au lieu de l'avaler en silence :
+//   api.statistiques().catch((err) => { logger.warn({ err }, 'statistiques indisponibles'); return null; })

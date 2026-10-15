@@ -1,0 +1,19 @@
+{
+  "name": "tp-s03-plateforme",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Séance 3 : Node.js comme plateforme (modules, paquets, outillage, premier serveur HTTP)",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test",
+    "demo:http": "node --watch demos/01-serveur-http-brut.mjs",
+    "demo:express": "node --watch demos/02-serveur-express.mjs",
+    "demo:config": "node --env-file-if-exists=demos/04-config/.env demos/04-config/config.mjs"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

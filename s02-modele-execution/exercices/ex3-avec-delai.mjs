@@ -1,16 +1,16 @@
-// Exercice 3 : ne jamais attendre indéfiniment
+// Exercice 3 : ne jamais attendre indéfiniment (CORRECTION)
 //
-// avecDelai(fn, ms) exécute fn(signal), une fonction async qui reçoit un AbortSignal, et :
-//   - renvoie son résultat si elle se termine en moins de « ms » millisecondes ;
-//   - sinon REJETTE avec une ErreurDelai (fournie ci-dessous) ET déclenche l'annulation du
-//     signal, pour que fn puisse arrêter son travail (ex. fetch(url, { signal }) s'interrompt) ;
-//   - si fn échoue avant le délai, propage son erreur telle quelle ;
-//   - ne laisse AUCUN minuteur actif derrière elle (sinon le processus ne s'arrête pas).
+// Promise.race met en concurrence deux promesses : le travail et un minuteur qui rejette.
+// La première à se terminer l'emporte.
+// Deux détails qui font la différence en production :
+//   1. abort() : sans lui, le travail perdant continue (requête HTTP ouverte, socket occupé…).
+//   2. clearTimeout dans finally : sans lui, un minuteur de 3 s reste programmé après chaque
+//      appel réussi ; avec des milliers d'appels, on accumule des minuteurs inutiles, et le
+//      processus ne peut pas s'arrêter proprement tant qu'ils sont actifs.
 //
-// Cas réel : un appel à l'API du fournisseur de SMS ne doit pas bloquer une réservation
-// plus de 3 secondes.
-//
-// Vérification (depuis le dossier de la séance) :  node --test
+// Alternative moderne : AbortSignal.timeout(ms) crée directement un signal qui s'annule
+// tout seul (voir demos/09-timeout-abort.mjs). Il faut alors écouter son événement 'abort'
+// pour rejeter avec notre propre ErreurDelai.
 
 export class ErreurDelai extends Error {
   constructor(ms) {
@@ -20,6 +20,19 @@ export class ErreurDelai extends Error {
 }
 
 export async function avecDelai(fn, ms) {
-  // TODO
-  throw new Error('À implémenter');
+  const controleur = new AbortController();
+  let minuteur;
+
+  const delaiDepasse = new Promise((_, rejeter) => {
+    minuteur = setTimeout(() => {
+      controleur.abort();
+      rejeter(new ErreurDelai(ms));
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([fn(controleur.signal), delaiDepasse]);
+  } finally {
+    clearTimeout(minuteur);
+  }
 }

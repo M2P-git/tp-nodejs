@@ -1,20 +1,29 @@
-// Exercice 4 : limiter la concurrence
+// Exercice 4 : limiter la concurrence (CORRECTION)
 //
-// executerAvecLimite(taches, limite) :
-//   - « taches » est un tableau de fonctions async sans argument : () => Promise<valeur> ;
-//   - exécute TOUTES les tâches, mais jamais plus de « limite » en même temps ;
-//   - dès qu'une tâche se termine, la suivante démarre (pas d'attente « par paquets ») ;
-//   - renvoie les résultats DANS L'ORDRE du tableau de tâches ;
-//   - si une tâche échoue, la promesse retournée rejette (comme Promise.all).
+// Idée : lancer « limite » ouvriers. Chaque ouvrier prend la prochaine tâche disponible,
+// l'attend, puis recommence, jusqu'à épuisement de la liste.
 //
-// Cas réel : envoyer 2 000 rappels SMS la veille des rendez-vous, sans dépasser les
-// 5 requêtes simultanées autorisées par l'API du fournisseur.
-// Pourquoi pas Promise.all(taches.map((t) => t())) ? Que se passerait-il ?
+// Pourquoi « const i = prochain++ » est-il sûr alors que plusieurs ouvriers le lisent ?
+// Parce que JavaScript est mono-thread : entre deux « await », le code s'exécute sans
+// interruption. Aucun autre ouvrier ne peut s'intercaler entre la lecture et l'incrément.
+// (Ce raisonnement ne vaut PLUS dès qu'il y a plusieurs processus ou une base de données
+//  partagée : c'est le problème de la double réservation, en séance 6.)
 //
-// Interdit : utiliser une bibliothèque (p-limit, etc.). Le but est de comprendre.
-// Vérification (depuis le dossier de la séance) :  node --test
+// Promise.all(taches.map((t) => t())) lancerait les 2 000 envois en même temps :
+// le fournisseur renverrait des erreurs 429 (trop de requêtes), voire bloquerait le compte.
 
 export async function executerAvecLimite(taches, limite) {
-  // TODO
-  throw new Error('À implémenter');
+  const resultats = new Array(taches.length);
+  let prochain = 0;
+
+  async function ouvrier() {
+    while (prochain < taches.length) {
+      const i = prochain++;
+      resultats[i] = await taches[i]();
+    }
+  }
+
+  const nombreOuvriers = Math.min(limite, taches.length);
+  await Promise.all(Array.from({ length: nombreOuvriers }, ouvrier));
+  return resultats;
 }

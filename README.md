@@ -11,8 +11,8 @@ précédente**.
 | `s01-javascript/` | 1 | L'essentiel de JavaScript pour comprendre Node.js |
 | `s02-modele-execution/` | 2 | Boucle d'événements, asynchronisme, pool de threads, streams |
 | `s03-plateforme/` | 3 | Modules, paquets, outillage, premier serveur HTTP |
-| `s04-cahier-des-charges/` | 4 | De l'annonce Upwork au cahier des charges |
-| `s05-…` à `s12-…` | 5 à 12 | Projet fil rouge RDV-Hub : énoncés, version de référence, critères des jalons |
+| `s04-salon-en-ligne/` | 4 | npm, Express et une première API web, avec sa page (jusque sur votre téléphone) |
+| `s05-…` et suivants | 5 et suivantes | Projet fil rouge RDV-Hub : énoncés, version de référence, critères des jalons |
 
 Les dossiers apparaissent au fil des séances. Chaque publication porte une **étiquette**
 (*tag*) : `seance-01`, `seance-02`, etc.

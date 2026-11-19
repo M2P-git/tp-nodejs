@@ -1,19 +1,15 @@
-// Exercice 2 : une mini-API avec node:http seulement (sans framework)
+// Exercice 2 : une mini-API avec node:http seulement (CORRECTION)
 //
-// Contrat à respecter (toutes les réponses sont en JSON, y compris les erreurs) :
-//   GET  /sante                       → 200 { statut: 'ok' }
-//   GET  /creneaux?date=AAAA-MM-JJ    → 200 { date, creneaux: ['09:00', …] }   | 400 si date invalide
-//   POST /reservations  { date, heure, client }
-//                                     → 201 { id, date, heure, client } + en-tête Location: /reservations/:id
-//                                       400 JSON mal formé ou champ invalide
-//                                       409 créneau déjà pris
-//                                       413 corps > 10 Kio
-//                                       415 Content-Type différent de application/json
-//   GET  /reservations/:id            → 200 { … } | 404
-//   toute autre route                 → 404 { erreur: '…' }
-//
-// Les règles métier sont déjà écrites dans domaine.mjs : ne vous occupez QUE de HTTP.
-// Vérification (depuis le dossier de la séance) :  node --test
+// À retenir :
+//  - Le corps d'une requête est un STREAM. On compte les octets au fil de l'eau : on ne
+//    laisse jamais un client nous faire charger 2 Go en mémoire (attaque par épuisement, API4).
+//  - Après un 413, on continue de « drainer » le flux (l'écouteur 'data' reste en place)
+//    pour que la connexion reste dans un état propre.
+//  - Toutes les erreurs « prévues » sont des ErreurHttp ; tout le reste est un bug → 500,
+//    sans divulguer le détail au client (il est journalisé côté serveur).
+//  - Le check « créneau libre ? » puis l'insertion sont SYNCHRONES dans stock.reserver() :
+//    aucune autre requête ne peut s'intercaler, d'où le test de concurrence qui passe.
+//    Avec une base de données (S6), ce ne sera plus vrai…
 import { createServer } from 'node:http';
 import { creerStock, estDateCalendaire, validerReservation, ErreurHttp } from './domaine.mjs';
 
@@ -24,17 +20,39 @@ function envoyerJson(res, status, donnees, entetes = {}) {
   res.end(JSON.stringify(donnees));
 }
 
-// TODO 1 : lire le corps de la requête et le parser en JSON.
-// req est un STREAM : le corps arrive en plusieurs morceaux (événements 'data'), puis 'end'.
-//   - rejeter avec new ErreurHttp(413, '…') dès que le corps dépasse « limite » octets ;
-//   - rejeter avec new ErreurHttp(400, '…') si le JSON est invalide ;
-//   - sinon, résoudre avec l'objet parsé.
 export function lireCorpsJson(req, limite = LIMITE_CORPS) {
-  return Promise.reject(new Error('À implémenter'));
+  return new Promise((resoudre, rejeter) => {
+    const morceaux = [];
+    let taille = 0;
+    let tropGros = false;
+
+    req.on('data', (morceau) => {
+      if (tropGros) return; // on draine sans stocker
+      taille += morceau.length;
+      if (taille > limite) {
+        tropGros = true;
+        morceaux.length = 0;
+        rejeter(new ErreurHttp(413, `Corps trop volumineux (maximum ${limite} octets)`));
+        return;
+      }
+      morceaux.push(morceau);
+    });
+
+    req.on('end', () => {
+      if (tropGros) return;
+      try {
+        resoudre(JSON.parse(Buffer.concat(morceaux).toString('utf8')));
+      } catch {
+        rejeter(new ErreurHttp(400, 'JSON mal formé'));
+      }
+    });
+
+    req.on('error', rejeter);
+  });
 }
 
 export function creerServeur() {
-  const stock = creerStock(); // chaque serveur a son propre stock en mémoire
+  const stock = creerStock();
 
   return createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
@@ -43,24 +61,46 @@ export function creerServeur() {
         return envoyerJson(res, 200, { statut: 'ok' });
       }
 
-      // TODO 2 : GET /creneaux?date=AAAA-MM-JJ   (url.searchParams.get('date'))
+      if (req.method === 'GET' && url.pathname === '/creneaux') {
+        const date = url.searchParams.get('date');
+        if (!estDateCalendaire(date)) {
+          throw new ErreurHttp(400, 'Paramètre « date » invalide (format AAAA-MM-JJ attendu)');
+        }
+        return envoyerJson(res, 200, { date, creneaux: stock.creneauxLibres(date) });
+      }
 
-      // TODO 3 : POST /reservations
-      //   vérifier le Content-Type (req.headers['content-type']), lire le corps,
-      //   valider avec validerReservation(), réserver avec stock.reserver()
+      if (req.method === 'POST' && url.pathname === '/reservations') {
+        if (!(req.headers['content-type'] ?? '').startsWith('application/json')) {
+          req.resume(); // on ignore le corps, mais on le consomme
+          throw new ErreurHttp(415, 'Content-Type « application/json » attendu');
+        }
+        const corps = await lireCorpsJson(req);
+        const champs = validerReservation(corps);
+        if (champs.length > 0) {
+          throw new ErreurHttp(400, `Champs invalides : ${champs.join(', ')}`, champs);
+        }
+        const reservation = stock.reserver(corps);
+        return envoyerJson(res, 201, reservation, { Location: `/reservations/${reservation.id}` });
+      }
 
-      // TODO 4 : GET /reservations/:id   (une expression régulière sur url.pathname)
+      const correspondance = url.pathname.match(/^\/reservations\/(\d+)$/);
+      if (req.method === 'GET' && correspondance) {
+        const reservation = stock.trouver(Number(correspondance[1]));
+        if (!reservation) throw new ErreurHttp(404, 'Réservation introuvable');
+        return envoyerJson(res, 200, reservation);
+      }
 
       envoyerJson(res, 404, { erreur: `Route inconnue : ${req.method} ${url.pathname}` });
     } catch (err) {
-      // TODO 5 : une ErreurHttp doit produire une réponse avec SON statut et son message.
-      //          Toute autre erreur est un bug : la journaliser et répondre 500.
-      envoyerJson(res, 500, { erreur: 'Erreur interne' });
+      if (err instanceof ErreurHttp) {
+        return envoyerJson(res, err.status, { erreur: err.message, ...(err.champs && { champs: err.champs }) });
+      }
+      console.error(err); // un vrai bug : on le journalise côté serveur…
+      envoyerJson(res, 500, { erreur: 'Erreur interne' }); // …sans le détailler au client
     }
   });
 }
 
-// Lancement manuel :  node exercices/ex2-api-http.mjs
 if (import.meta.main) {
   creerServeur().listen(3000, () => console.log('http://localhost:3000'));
 }

@@ -1,0 +1,14 @@
+body { font-family: system-ui, sans-serif; max-width: 26rem;
+       margin: 2rem auto; padding: 0 1rem; background: #f4f7f4; }
+h1 { color: #3c873a; }
+ul { list-style: none; padding: 0; }
+li { background: white; margin: 0.4rem 0; padding: 0.7rem 1rem;
+     border-left: 0.4rem solid #3c873a; border-radius: 0.6rem;
+     font-size: 1.1rem; box-shadow: 0 1px 3px #0002; }
+form { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
+input, button { font: inherit; padding: 0.6rem; border-radius: 0.5rem;
+                border: 1px solid #bbb; }
+button { grid-column: span 2; background: #3c873a; color: white;
+         border: none; font-weight: bold; }
+.ok { color: #2e7d32; font-weight: bold; }
+.erreur { color: #c62828; font-weight: bold; }

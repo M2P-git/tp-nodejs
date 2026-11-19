@@ -1,0 +1,18 @@
+{
+  "name": "ex1-mon-projet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Squelette de projet Node.js professionnel (séance 3, exercice 1)",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch --env-file-if-exists=.env src/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

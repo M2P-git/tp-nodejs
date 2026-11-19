@@ -1,0 +1,16 @@
+# Dépendances (réinstallées avec npm ci)
+node_modules/
+
+# Secrets et configuration locale
+.env
+.env.*
+!.env.example
+
+# Journaux et fichiers système
+*.log
+.DS_Store
+Thumbs.db
+
+# Couverture de tests, builds
+coverage/
+dist/

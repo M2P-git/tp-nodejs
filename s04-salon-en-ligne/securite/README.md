@@ -4,7 +4,7 @@ But : constater qu'un paquet peut exécuter du code dès son installation, puis 
 
 ## Le seul paquet à récupérer
 
-Télécharger **[joli-logger-1.0.3.tgz](https://raw.githubusercontent.com/M2P-git/tp-nodejs/main/s04-salon-en-ligne/securite/joli-logger-1.0.3.tgz)** (lien direct), ou retrouver cette archive dans `s04-salon-en-ligne/securite/` après avoir récupéré le dépôt. Les [sources du paquet](joli-logger/) sont également fournies. C'est un paquet local fabriqué pour ce cours. Ne pas le décompresser et ne pas taper `npm install joli-logger` : cette commande chercherait un homonyme sur Internet.
+Télécharger **[joli-logger-1.0.3.tgz](https://raw.githubusercontent.com/M2P-git/tp-nodejs/main/s04-salon-en-ligne/securite/joli-logger-1.0.3.tgz)** (lien direct), ou retrouver cette archive dans `s04-salon-en-ligne/securite/` après avoir récupéré le dépôt. Les [sources du paquet](joli-logger/) sont également consultables. Utiliser cette archive locale sans la décompresser. Ne pas taper `npm install joli-logger` : cette commande chercherait un homonyme sur Internet.
 
 Le code fourni dans `joli-logger/installe.js` écrit seulement `preuve.txt` dans le dossier de test. Il ne lit aucun secret et ne fait aucune connexion réseau. Les noms cités dans les récits d'attaques et `expresss` sont des exemples à étudier, pas des paquets à installer.
 
@@ -31,7 +31,7 @@ Get-Content preuve.txt
 
 Résultat attendu : **`postinstall exécuté`**. On n'a lancé ni import ni programme du paquet : npm a déclenché son `postinstall` pendant l'installation. `--ignore-scripts=false` active les scripts pour cette commande uniquement. `--offline --no-audit --no-fund` garde cette démonstration locale sans requête au registre ; l'audit sera testé séparément sur le projet Express.
 
-Selon la version de npm et la politique de scripts du PC, npm peut afficher un avertissement ou bloquer ce script. S'il est bloqué, conserver la protection et montrer le message à l'enseignant ; ne pas modifier la configuration globale pour forcer la démonstration.
+Selon la version de npm et la politique de scripts du PC, npm peut afficher un avertissement ou bloquer ce script. S'il est bloqué, relever le message dans le compte rendu et passer au test 2 sans modifier la configuration globale.
 
 ## Test 2 : installer sans le script
 
@@ -67,12 +67,7 @@ Ce test demande Internet. Aucun paquet « audit » à télécharger : la command
 - Le résultat de l'audit du projet Express et une phrase sur sa limite.
 - Une phrase expliquant pourquoi `--ignore-scripts` n'empêche pas l'exécution du code lorsqu'on importe ensuite un paquet.
 
-## Pour l'enseignant : refaire l'archive
+## Références
 
-Après modification des sources, depuis le dossier `securite` :
-
-```powershell
-npm.cmd pack ./joli-logger --ignore-scripts --offline
-```
-
-Références : [installation et ignore-scripts](https://docs.npmjs.com/cli/v11/commands/npm-install/), [npm pack](https://docs.npmjs.com/cli/v11/commands/npm-pack/), [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit/).
+- [Installation et ignore-scripts](https://docs.npmjs.com/cli/v11/commands/npm-install/).
+- [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit/).

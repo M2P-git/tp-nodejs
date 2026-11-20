@@ -1,0 +1,10 @@
+{
+  "name": "joli-logger",
+  "version": "1.0.3",
+  "private": true,
+  "description": "Démonstration locale du cours : postinstall crée uniquement preuve.txt.",
+  "scripts": {
+    "postinstall": "node installe.js"
+  },
+  "files": ["installe.js"]
+}

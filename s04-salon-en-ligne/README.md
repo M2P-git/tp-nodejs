@@ -73,6 +73,15 @@ Puis ouvrez **http://localhost:3000** dans le navigateur, et réservez depuis la
 
 La correction sera publiée à la séance suivante.
 
+## Atelier sécurité npm
+
+Les [consignes de l’atelier](securite/README.md) et les fichiers sont disponibles dans [`securite/`](securite/). On y compare deux installations du paquet local, avec et sans script `postinstall`, puis on lance `npm audit` dans le projet Express.
+
+- [Télécharger directement `joli-logger-1.0.3.tgz`](https://raw.githubusercontent.com/M2P-git/tp-nodejs/main/s04-salon-en-ligne/securite/joli-logger-1.0.3.tgz).
+- [Consulter les sources du paquet](securite/joli-logger/).
+
+Placer l’archive dans un dossier de test séparé du projet `rdv`, puis suivre les consignes. Utiliser le fichier `.tgz` fourni ; ne pas installer un homonyme depuis le registre npm.
+
 ## Avec Docker (chemin B)
 
 Votre dossier `rdv` doit se trouver dans le dossier du dépôt, partagé avec le conteneur
